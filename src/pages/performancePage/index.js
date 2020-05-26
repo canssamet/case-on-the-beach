@@ -1,5 +1,5 @@
 /* eslint-disable no-lone-blocks */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { postData } from "./actions";
 import "./styles.css";
@@ -9,72 +9,87 @@ function PerformancePage(props) {
   const [chartData, setChartData] = useState({
     ttfb: [{ x: 0, y: 0 }],
     fcp: [{ x: 0, y: 0 }],
-    domLoad: [{ x: 0, y: 0 }],
+    domContentLoad: [{ x: 0, y: 0 }],
     windowLoad: [{ x: 0, y: 0 }]
   });
   const dispatch = useDispatch();
   const states = useSelector(state => state.performancePageReducer);
 
-  useEffect(() => {
-    const timing = getPerfTiming()
-    const resource = getResourcePerf()
-    const body = {
-      ...timing,
-      resource,
-      createDate: new Date(),
-    }
-    dispatch(postData(body))
+  const perfObserver = new PerformanceObserver(()=>{})
+  perfObserver.observe({ entryTypes: ["paint"] });
+
+  const postPerfData = useCallback(async (body) => {
+    await dispatch(postData(body))
   }, [dispatch])
+
+  useEffect(() => {
+    setTimeout(() => {
+      const timing = getPerfTiming()
+      const resource = getResourcePerf()
+      const body = {
+        ...timing,
+        resource,
+        createDate: new Date(),
+      }
+      postPerfData(body)
+    }, 200);
+  }, [postPerfData])
 
   useEffect(() => {
     setChartData(states?.perfData?.reduce((acc, item, curIndex) => {
       acc.ttfb.push({ x: curIndex, y: item.ttfb });
       acc.fcp.push({ x: curIndex, y: item.fcp });
-      acc.domLoad.push({ x: curIndex, y: item.domLoad });
+      acc.domContentLoad.push({ x: curIndex, y: item.domContentLoad });
       acc.windowLoad.push({ x: curIndex, y: item.windowLoad });
       return acc;
     }, {
       ttfb: [{ x: 0, y: 0 }],
       fcp: [{ x: 0, y: 0 }],
-      domLoad: [{ x: 0, y: 0 }],
+      domContentLoad: [{ x: 0, y: 0 }],
       windowLoad: [{ x: 0, y: 0 }]
     }))
   }, [states])
 
   const getPerfTiming = () => {
-    const time = window.performance.timing
-    const ttfb = time.responseStart - time.requestStart;
-    const domContentLoad = time.domContentLoadedEventEnd - time.domContentLoadedEventStart;
-    const windowLoad = time.loadEventEnd - time.loadEventStart;
-    let fcp = window.performance.getEntries().filter(val => val.name === 'first-contentful-paint')[0]
 
-    const timing = {
-      ttfb,
-      domContentLoad,
-      windowLoad,
-      fcp: fcp && fcp !== [] ? fcp?.startTime : 0
+    if (window?.performance?.timing) {
+      const time = window.performance.timing
+      const ttfb = time.responseEnd - time.requestStart;
+      const domContentLoad = time.domComplete - time.domLoading;
+      const windowLoad = time.loadEventEnd - time.loadEventStart;
+      let fcp = window.performance.getEntriesByName('first-contentful-paint')[0]
+
+      const timing = {
+        ttfb,
+        domContentLoad,
+        windowLoad,
+        fcp: fcp && fcp !== [] ? fcp?.startTime : 0
+      }
+      return timing
     }
-    return timing
+    return {}
   }
 
   const getResourcePerf = () => {
-    const resources = window.performance.getEntriesByType('resource');
-    const resource = resources.map((val) => {
-      const data = {
-        name: val.name,
-        requestStart: val.requestStart,
-        responseEnd: val.responseEnd,
-      }
-      return data
-    })
-    return resource
+    if (window?.performance?.getEntriesByType) {
+      const resources = window.performance.getEntriesByType('resource');
+      const resource = resources.map((val) => {
+        const data = {
+          name: val.name,
+          requestStart: val.requestStart,
+          responseEnd: val.responseEnd,
+        }
+        return data
+      })
+      return resource
+    }
   }
   return (
     <main>
       <div className='outer'>
         <LineChart data={chartData.ttfb} title='TTFB' />
         <LineChart data={chartData.fcp} title='FCP' />
-        <LineChart data={chartData.domLoad} title='DOM' />
+        <LineChart data={chartData.domContentLoad} title='DOM' />
         <LineChart data={chartData.windowLoad} title='WINDOW' />
       </div>
     </main>
