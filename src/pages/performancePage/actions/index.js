@@ -1,58 +1,58 @@
-import { FETCH_DATA_START, FETCH_DATA_SUCCESS, FETCH_DATA_FAIL } from '../../../store/types'
+import { PERFORMANCE_DATA_START, PERFORMANCE_DATA_SUCCESS, PERFORMANCE_DATA_FAIL } from '../../../store/types'
 import Api from '../../../api'
 
-export const fetchDataStart = payload => {
+export const getPerformanceDataStart = payload => {
 	return {
-		type: FETCH_DATA_START,
+		type: PERFORMANCE_DATA_START,
 		payload
 	}
 }
 
-export const fetchDataSuccess = payload => {
+export const getPerformanceDataSuccess = payload => {
 	return {
-		type: FETCH_DATA_SUCCESS,
+		type: PERFORMANCE_DATA_SUCCESS,
 		payload
 	}
 }
 
-export const fetchDataFail = payload => {
+export const getPerformanceDataFail = payload => {
 	return {
-		type: FETCH_DATA_FAIL,
+		type: PERFORMANCE_DATA_FAIL,
 		payload
 	}
 }
 
-export const fetchData = () => {
+export const getPerformanceData = () => {
 	return async dispatch => {
 		try {
-			dispatch(fetchDataStart(true))
+			dispatch(getPerformanceDataStart(true))
 			const { data, status } = await Api.get(`perf`)
 			console.warn(data)
 			if (data && status === 200) {
-				dispatch(fetchDataSuccess(data))
+				dispatch(getPerformanceDataSuccess(data))
 				return
 			}
-			dispatch(fetchDataFail({ status }))
+			dispatch(getPerformanceDataFail({ status }))
 		} catch (error) {
 			console.log(error)
-			dispatch(fetchDataFail(error))
+			dispatch(getPerformanceDataFail(error))
 		}
 	}
 }
 
-export const postData = (body) => {
+export const postPerfomanceData = (body) => {
 	return async dispatch => {
 		try {
-			dispatch(fetchDataStart(true))
+			dispatch(getPerformanceDataStart(true))
 			const { data, status } = await Api.post(`perf`,body)
 			if (data && status === 200) {
-				dispatch(fetchDataSuccess(data))
+				dispatch(getPerformanceDataSuccess(data))
 				return
 			}
-			dispatch(fetchDataFail({ status }))
+			dispatch(getPerformanceDataFail({ status }))
 		} catch (error) {
 			console.log(error)
-			dispatch(fetchDataFail(error))
+			dispatch(getPerformanceDataFail(error))
 		}
 	}
 }

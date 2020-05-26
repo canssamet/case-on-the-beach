@@ -1,7 +1,7 @@
 /* eslint-disable no-lone-blocks */
 import React, { useEffect, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { postData } from "./actions";
+import { postPerfomanceData } from "./actions";
 import "./styles.css";
 import { LineChart } from './components'
 
@@ -15,11 +15,11 @@ function PerformancePage(props) {
   const dispatch = useDispatch();
   const states = useSelector(state => state.performancePageReducer);
 
-  const perfObserver = new PerformanceObserver(()=>{})
-  perfObserver.observe({ entryTypes: ["paint"] });
+  const perfObserver = new PerformanceObserver((list, observer) => { observer.disconnect() })
+  perfObserver.observe({ entryTypes: ["paint", "mark"] });
 
   const postPerfData = useCallback(async (body) => {
-    await dispatch(postData(body))
+    await dispatch(postPerfomanceData(body))
   }, [dispatch])
 
   useEffect(() => {

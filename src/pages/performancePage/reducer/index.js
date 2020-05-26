@@ -1,4 +1,4 @@
-import { FETCH_DATA_START, FETCH_DATA_SUCCESS, FETCH_DATA_FAIL } from '../../../store/types'
+import { PERFORMANCE_DATA_START, PERFORMANCE_DATA_SUCCESS, PERFORMANCE_DATA_FAIL } from '../../../store/types'
 
 const initialState = {
 	loader: false,
@@ -8,19 +8,19 @@ const initialState = {
 
 export default function reducer(state = initialState, { type, payload }) {
 	switch (type) {
-		case FETCH_DATA_START:
+		case PERFORMANCE_DATA_START:
 			return {
 				...state,
 				loader: payload
 			}
-		case FETCH_DATA_SUCCESS:
+		case PERFORMANCE_DATA_SUCCESS:
 			return {
 				...state,
 				loader: false,
 				perfData: payload,
 				errorMessage: false
 			}
-		case FETCH_DATA_FAIL:
+		case PERFORMANCE_DATA_FAIL:
 			return {
 				...state,
 				loader: false,
