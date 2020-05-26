@@ -2,7 +2,7 @@ import { FETCH_DATA_START, FETCH_DATA_SUCCESS, FETCH_DATA_FAIL } from '../../../
 
 const initialState = {
 	loader: false,
-	listData: [],
+	perfData: [],
 	errorMessage: false
 }
 
@@ -17,14 +17,14 @@ export default function reducer(state = initialState, { type, payload }) {
 			return {
 				...state,
 				loader: false,
-				listData: payload,
+				perfData: payload,
 				errorMessage: false
 			}
 		case FETCH_DATA_FAIL:
 			return {
 				...state,
 				loader: false,
-				listData: [],
+				perfData: [],
 				errorMessage: payload
 			}
 		default:

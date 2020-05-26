@@ -40,3 +40,20 @@ export const fetchData = () => {
 	}
 }
 
+export const postData = (body) => {
+	return async dispatch => {
+		try {
+			dispatch(fetchDataStart(true))
+			const { data, status } = await Api.post(`perf`,body)
+			if (data && status === 200) {
+				dispatch(fetchDataSuccess(data))
+				return
+			}
+			dispatch(fetchDataFail({ status }))
+		} catch (error) {
+			console.log(error)
+			dispatch(fetchDataFail(error))
+		}
+	}
+}
+

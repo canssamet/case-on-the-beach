@@ -1,39 +1,47 @@
 /* eslint-disable no-lone-blocks */
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchData } from "./actions";
+import { postData } from "./actions";
 import "./styles.css";
-import Api from '../../api'
+import { LineChart } from './components'
 
 function PerformancePage(props) {
-
+  const [chartData, setChartData] = useState({
+    ttfb: [{ x: 0, y: 0 }],
+    fcp: [{ x: 0, y: 0 }],
+    domLoad: [{ x: 0, y: 0 }],
+    windowLoad: [{ x: 0, y: 0 }]
+  });
   const dispatch = useDispatch();
   const states = useSelector(state => state.performancePageReducer);
 
-  const getPerfDatas =  useCallback(async() => {
-    const timing = getPerformanceTiming()
-    const resource = getResourcePerform()
+  useEffect(() => {
+    const timing = getPerfTiming()
+    const resource = getResourcePerf()
     const body = {
       ...timing,
       resource,
       createDate: new Date(),
     }
-    console.log({body})
-    const result = await Api.post('perf',body)
-    console.log('axios post',result)
-  },[])
-
-  const fetchDataCallback = useCallback(async() => {
-    await dispatch(fetchData())
-    getPerfDatas()
-  }, [dispatch, getPerfDatas])
+    dispatch(postData(body))
+  }, [dispatch])
 
   useEffect(() => {
-    fetchDataCallback()
-   }, [fetchDataCallback ])
+    setChartData(states?.perfData?.reduce((acc, item, curIndex) => {
+      acc.ttfb.push({ x: curIndex, y: item.ttfb });
+      acc.fcp.push({ x: curIndex, y: item.fcp });
+      acc.domLoad.push({ x: curIndex, y: item.domLoad });
+      acc.windowLoad.push({ x: curIndex, y: item.windowLoad });
+      return acc;
+    }, {
+      ttfb: [{ x: 0, y: 0 }],
+      fcp: [{ x: 0, y: 0 }],
+      domLoad: [{ x: 0, y: 0 }],
+      windowLoad: [{ x: 0, y: 0 }]
+    }))
+  }, [states])
 
-
-  const getPerformanceTiming = () => {
+  const getPerfTiming = () => {
     const time = window.performance.timing
     const ttfb = time.responseStart - time.requestStart;
     const domContentLoad = time.domContentLoadedEventEnd - time.domContentLoadedEventStart;
@@ -49,9 +57,7 @@ function PerformancePage(props) {
     return timing
   }
 
-
-
-  const getResourcePerform = () => {
+  const getResourcePerf = () => {
     const resources = window.performance.getEntriesByType('resource');
     const resource = resources.map((val) => {
       const data = {
@@ -63,11 +69,14 @@ function PerformancePage(props) {
     })
     return resource
   }
- 
   return (
     <main>
-      <h1>Count: {String(states.loader)}</h1>
-      <button className='button' onClick={fetchDataCallback}>FETCH DATA</button>
+      <div className='outer'>
+        <LineChart data={chartData.ttfb} title='TTFB' />
+        <LineChart data={chartData.fcp} title='FCP' />
+        <LineChart data={chartData.domLoad} title='DOM' />
+        <LineChart data={chartData.windowLoad} title='WINDOW' />
+      </div>
     </main>
   );
 };
